@@ -17,7 +17,7 @@ trait NodeTrait
      *
      * @var array
      */
-    protected $pending;
+    protected $pending = [];
 
     /**
      * Whether the node has moved since last save.
