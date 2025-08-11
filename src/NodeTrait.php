@@ -681,7 +681,7 @@ trait NodeTrait
     }
 
     /**
-     * @param string $table
+     * @param string|null $table
      *
      * @return QueryBuilder
      */
@@ -692,7 +692,7 @@ trait NodeTrait
 
     /**
      * @param mixed $query
-     * @param string $table
+     * @param string|null $table
      *
      * @return mixed
      */
@@ -725,7 +725,7 @@ trait NodeTrait
     /**
      * @param array $attributes
      *
-     * @return self
+     * @return QueryBuilder
      */
     public static function scoped(array $attributes)
     {
@@ -749,9 +749,9 @@ trait NodeTrait
      *
      * Use `children` key on `$attributes` to create child nodes.
      *
-     * @param self $parent
+     * @param self|null $parent
      */
-    public static function create(array $attributes = [], self $parent = null)
+    public static function create(array $attributes = [], ?self $parent = null)
     {
         $children = Arr::pull($attributes, 'children');
 
@@ -1005,7 +1005,8 @@ trait NodeTrait
     public function isDescendantOf(self $other)
     {
         return $this->getLft() > $other->getLft() &&
-            $this->getLft() < $other->getRgt();
+            $this->getLft() < $other->getRgt() &&
+            $this->isSameScope($other);
     }
 
     /**
@@ -1202,11 +1203,29 @@ trait NodeTrait
     }
 
     /**
+     * @param self $node
+     */
+    protected function isSameScope(self $node): bool
+    {
+        if ( ! $scoped = $this->getScopeAttributes()) {
+            return true;
+        }
+
+        foreach ($scoped as $attr) {
+            if ($this->getAttribute($attr) != $node->getAttribute($attr)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @param array|null $except
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
-    public function replicate(array $except = null)
+    public function replicate(?array $except = null)
     {
         $defaults = [
             $this->getParentIdName(),
